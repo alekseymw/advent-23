@@ -19,11 +19,11 @@ fun main() {
 
                 gameString.split(regex)
                     .forEach {
-                        val numberColorPair = it.split(" ")
-                        when (numberColorPair[1]) {
-                            "red" -> if (numberColorPair[0].toInt() > MAX_RED) isGamePossible = false
-                            "green" -> if (numberColorPair[0].toInt() > MAX_GREEN) isGamePossible = false
-                            "blue" -> if (numberColorPair[0].toInt() > MAX_BLUE) isGamePossible = false
+                        val (number, color) = it.split(" ")
+                        when (color) {
+                            "red" -> if (number.toInt() > MAX_RED) isGamePossible = false
+                            "green" -> if (number.toInt() > MAX_GREEN) isGamePossible = false
+                            "blue" -> if (number.toInt() > MAX_BLUE) isGamePossible = false
                         }
                     }
 
@@ -43,11 +43,11 @@ fun main() {
 
                 gameString.split(regex)
                     .forEach {
-                        val numberColorPair = it.split(" ")
-                        when (numberColorPair[1]) {
-                            "red" -> redCount = max(redCount, numberColorPair[0].toInt())
-                            "green" -> greenCount = max(greenCount, numberColorPair[0].toInt())
-                            "blue" -> blueCount = max(blueCount, numberColorPair[0].toInt())
+                        val (number, color) = it.split(" ")
+                        when (color) {
+                            "red" -> redCount = max(redCount, number.toInt())
+                            "green" -> greenCount = max(greenCount, number.toInt())
+                            "blue" -> blueCount = max(blueCount, number.toInt())
                         }
                     }
 
