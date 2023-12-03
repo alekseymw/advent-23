@@ -10,7 +10,6 @@ fun main() {
     fun getNumberList(input: List<String>) = input.flatMapIndexed { rowNumber, inputString ->
         val regex = "\\d+".toRegex()
         regex.findAll(inputString, 0).map {
-            it.range
             EnginePart(it.value.toInt(), rowNumber, it.range.first, it.range.last)
         }.toList()
     }
