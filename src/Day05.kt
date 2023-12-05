@@ -13,10 +13,10 @@ fun main() {
             if (input[i].isBlank()) visited.replaceAll { false }
             else
                 if (input[i].any { it.isDigit() }) {
-                    val transformNumbers = getNumbers(input[i]).toList()
+                    val (transformTo, transformFrom, length) = getNumbers(input[i]).toList()
                     seeds.forEachIndexed { index, seed ->
-                        if (visited[index].not() && seed in transformNumbers[1].rangeUntil(transformNumbers[1] + transformNumbers[2])) {
-                            seeds[index] = transformNumbers[0] + (seeds[index] - transformNumbers[1])
+                        if (visited[index].not() && seed in transformFrom.rangeUntil(transformFrom + length)) {
+                            seeds[index] = transformTo + (seeds[index] - transformFrom)
                             visited[index] = true
                         }
                     }
@@ -26,57 +26,67 @@ fun main() {
         return seeds.min()
     }
 
-    data class SeedRange(val numbersRange: LongRange)
-    data class TransformRange(val transformFromRange: LongRange, val transformToRange: LongRange)
+    data class SeedRange(val start: Long, val end: Long)
+    data class TransformRange(val fromStart: Long, val fromEnd: Long, val toStart: Long, val toEnd: Long)
 
     fun part2(input: List<String>): Long {
         val seeds = getNumbers(input[0]).toList()
         var seedRanges = (seeds.indices step 2).map {
-            SeedRange(seeds[it]..seeds[it] + seeds[it + 1])
+            SeedRange(seeds[it], seeds[it] + seeds[it + 1])
         }.toMutableList()
 
-        val transformMap = mutableListOf<TransformRange>()
+        val transformMap = ArrayList<TransformRange>()
         for (i in 2..<input.size) {
             if (input[i].any { it.isDigit() }) {
-                val transformNumbers = getNumbers(input[i]).toList()
-                val transformToStart = transformNumbers[0]
-                val transformFromStart = transformNumbers[1]
-                val length = transformNumbers[2]
+                val (transformToStart, transformFromStart, length) = getNumbers(input[i]).toList()
                 transformMap.add(
                     TransformRange(
-                        transformFromStart..transformFromStart + length,
-                        transformToStart..transformToStart + length
+                        transformFromStart, transformFromStart + length,
+                        transformToStart, transformToStart + length
                     )
                 )
             }
             if (input[i].isBlank() || i == input.size - 1) {
+                val queue: ArrayDeque<SeedRange> = ArrayDeque(seedRanges)
                 val temp = mutableListOf<SeedRange>()
 
-                seedRanges.forEach mainLoop@ { seedRange ->
-                    val numbersRange = seedRange.numbersRange
-                    val sizeBefore = temp.size
-                    transformMap.forEach { transformRange ->
-                        val transformFromRange = transformRange.transformFromRange
-                        if (transformFromRange.contains(numbersRange.first) || transformFromRange.contains(numbersRange.last)
-                            || (transformFromRange.first > numbersRange.first && transformFromRange.last < numbersRange.last)) {
-                            val newRangeStart =
-                                maxOf(numbersRange.first, transformFromRange.first)
-                            val newRangeEnd =
-                                minOf(numbersRange.last, transformFromRange.last)
+                while (queue.isEmpty().not()) {
+                    val seedRange = queue.removeFirst()
 
-                            val shift = abs(newRangeStart - transformFromRange.first)
+                    val filteredTransformMap = transformMap.filter { transformRange ->
+                        ((transformRange.fromStart <= seedRange.start && transformRange.fromEnd <= seedRange.end && transformRange.fromEnd >= seedRange.start) ||
+                                (transformRange.fromStart >= seedRange.start && transformRange.fromEnd >= seedRange.end && transformRange.fromStart < seedRange.end) ||
+                                (transformRange.fromStart < seedRange.start && transformRange.fromEnd > seedRange.end))
+                    }.toList()
+
+                    if (filteredTransformMap.isEmpty()) temp.add(seedRange)
+                    else {
+                        filteredTransformMap.forEach { transformRange ->
+                            val newRangeStart =
+                                maxOf(seedRange.start, transformRange.fromStart)
+                            val newRangeEnd =
+                                minOf(seedRange.end, transformRange.fromEnd)
+
+                            val shift = abs(newRangeStart - transformRange.fromStart)
                             val length = newRangeEnd - newRangeStart
 
-                            val transformToRangeStart = transformRange.transformToRange.first + shift
-                            temp.add(SeedRange(transformToRangeStart..transformToRangeStart + length))
+                            val transformToRangeStart = transformRange.toStart + shift
+                            temp.add(SeedRange(transformToRangeStart, transformToRangeStart + length))
 
-                            if (numbersRange.first < transformFromRange.first) temp.add(SeedRange(numbersRange.first..<transformFromRange.first))
-                            if (numbersRange.last > transformFromRange.last) temp.add(SeedRange(transformFromRange.last..<numbersRange.last))
-
-                            return@mainLoop
+                            if (seedRange.start < transformRange.fromStart) queue.add(
+                                SeedRange(
+                                    seedRange.start,
+                                    transformRange.fromStart - 1
+                                )
+                            )
+                            if (seedRange.end > transformRange.fromEnd) queue.add(
+                                SeedRange(
+                                    transformRange.fromEnd + 1,
+                                    seedRange.end
+                                )
+                            )
                         }
                     }
-                    if (temp.size == sizeBefore) temp.add(seedRange)
                 }
 
                 seedRanges = temp
@@ -84,8 +94,7 @@ fun main() {
             }
         }
 
-        return seedRanges.filter { it.numbersRange.first != 0L }
-            .minOf { it.numbersRange.first }
+        return seedRanges.minOf { it.start }
     }
 
     val testInput = readInput("Day05_test")
