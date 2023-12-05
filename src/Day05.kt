@@ -53,11 +53,12 @@ fun main() {
                 while (queue.isEmpty().not()) {
                     val seedRange = queue.removeFirst()
 
-                    val filteredTransformMap = transformMap.filter { transformRange ->
-                        ((transformRange.fromStart <= seedRange.start && transformRange.fromEnd <= seedRange.end && transformRange.fromEnd >= seedRange.start) ||
-                                (transformRange.fromStart >= seedRange.start && transformRange.fromEnd >= seedRange.end && transformRange.fromStart < seedRange.end) ||
-                                (transformRange.fromStart < seedRange.start && transformRange.fromEnd > seedRange.end))
-                    }.toList()
+                    val filteredTransformMap = transformMap.asSequence()
+                        .filter { transformRange ->
+                            ((transformRange.fromStart <= seedRange.start && transformRange.fromEnd <= seedRange.end && transformRange.fromEnd >= seedRange.start) ||
+                                    (transformRange.fromStart >= seedRange.start && transformRange.fromEnd >= seedRange.end && transformRange.fromStart < seedRange.end) ||
+                                    (transformRange.fromStart < seedRange.start && transformRange.fromEnd > seedRange.end))
+                        }.toList()
 
                     if (filteredTransformMap.isEmpty()) temp.add(seedRange)
                     else {
