@@ -1,19 +1,18 @@
+import java.util.function.Function
 import kotlin.math.pow
 
-enum class CardEnum(val stringValue: String) {
-    CA("A"),
-    CK("K"),
-    CQ("Q"),
-    CJ("J"),
-    CT("T"),
-    C9("9"),
-    C8("8"),
-    C7("7"),
-    C6("6"),
-    C5("5"),
-    C4("4"),
-    C3("3"),
-    C2("2")
+fun part1(input: List<String>): Int {
+    val cardStrength = "23456789TJQKA"
+    val sorted = sortByStrength(input, cardStrength, ::handStrength)
+    return sorted.mapIndexed { index, pair -> pair.second * (index + 1) }
+        .sum()
+}
+
+fun part2(input: List<String>): Int {
+    val cardStrength = "J23456789TQKA"
+    val sorted = sortByStrength(input, cardStrength, ::handStrengthWithJokers)
+    return sorted.mapIndexed { index, pair -> pair.second * (index + 1) }
+        .sum()
 }
 
 fun handStrength(hand: String): Int {
@@ -21,7 +20,20 @@ fun handStrength(hand: String): Int {
     for (card in hand) {
         map.merge(card, 1, Int::plus)
     }
-    return map.map { 2.0.pow(it.value) }.sum().toInt()
+    return map.map { it.value.toDouble().pow(2) }.sum().toInt()
+}
+
+fun handStrengthWithJokers(hand: String): Int {
+    val map = mutableMapOf<Char, Int>()
+    var j = 0
+    for (card in hand) {
+        if (card == 'J') j++ else map.merge(card, 1, Int::plus)
+    }
+    if (map.isEmpty()) map['J'] = j else {
+        val max = map.maxBy { it.value }
+        map[max.key] = max.value + j
+    }
+    return map.map { it.value.toDouble().pow(2) }.sum().toInt()
 }
 
 fun parseInput(input: List<String>): List<Pair<String, Int>> {
@@ -31,44 +43,34 @@ fun parseInput(input: List<String>): List<Pair<String, Int>> {
     }
 }
 
-fun part1(input: List<String>): Int {
-    val sorted =
-        parseInput(input).sortedWith(compareBy<Pair<String, Int>> { handStrength(it.first) }
-            .thenComparator { cur, other ->
-                val curList = cur.first.map { CardEnum.valueOf("C$it") }.toList()
-                val otherList = other.first.map { CardEnum.valueOf("C$it") }.toList()
-                var result = 0
-                for (i in curList.indices) if (curList[i].compareTo(otherList[i]) != 0) {
-                    result = curList[i].compareTo(otherList[i])
-                    break
-                }
-                -result
-            })
+private fun sortByStrength(
+    input: List<String>,
+    cardStrength: String,
+    handStrengthFunction: Function<String, Int>
+) = parseInput(input).sortedWith { cur, other ->
+    val curStr = handStrengthFunction.apply(cur.first)
+    val otherStr = handStrengthFunction.apply(other.first)
+    var result = 0
 
-    parseInput(input).sortedWith(Comparator { cur, other ->
-        val curStr = handStrength(cur.first)
-        val otherStr = handStrength(other.first)
-        var result = 0
-
-        if (curStr != otherStr) result = curStr.compareTo(otherStr)
-        else {
-            val curList = cur.first.map { CardEnum.valueOf("C$it") }.toList()
-            val otherList = other.first.map { CardEnum.valueOf("C$it") }.toList()
-            for (i in curList.indices) if (curList[i].compareTo(otherList[i]) != 0) {
-                result = curList[i].compareTo(otherList[i])
-                break
-            }
+    if (curStr != otherStr) result = curStr.compareTo(otherStr)
+    else {
+        for (i in cur.first.indices) if (cardStrength.indexOf(cur.first[i])
+                .compareTo(cardStrength.indexOf(other.first[i])) != 0
+        ) {
+            result = cardStrength.indexOf(cur.first[i]).compareTo(cardStrength.indexOf(other.first[i]))
+            break
         }
-        result
-    })
-    return sorted.mapIndexed { index, pair -> pair.second * (index + 1) }
-        .sum()
+    }
+    result
 }
 
 fun main() {
     val testInput = readInput("Day07_test")
     check(part1(testInput) == 6440)
+    val testInput2 = readInput("Day07_test2")
+    check(part2(testInput2) == 5905)
 
     val input = readInput("Day07")
     part1(input).println()
+    part2(input).println()
 }
