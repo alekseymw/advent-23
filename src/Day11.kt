@@ -25,7 +25,6 @@ fun main() {
     ) = galaxyList.foldIndexed(mutableListOf<Long>()) { i, list, galaxy ->
         for (k in i + 1..<galaxyList.size) {
             val distance: Long = abs(galaxy.y - galaxyList[k].y) + abs(galaxy.x - galaxyList[k].x)
-            println("${i + 1} ${galaxy.x}, ${galaxy.y} - ${k + 1} ${galaxyList[k].x}, ${galaxyList[k].y} == $distance")
             list.add(distance)
         }
         list
