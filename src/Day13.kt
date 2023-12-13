@@ -1,26 +1,29 @@
 fun main() {
 
     fun parseInput(input: List<String>): List<List<String>> {
-        val result = mutableListOf<List<String>>()
-        var list = input.takeWhile { it.isNotBlank() }
-        var rest = input
-        while (list.isNotEmpty()) {
-            result.add(list)
-            rest = rest.drop(list.size + 1)
-            list = rest.takeWhile { it.isNotBlank() }
+        return buildList {
+            var list = input.takeWhile { it.isNotBlank() }
+            var rest = input
+            while (list.isNotEmpty()) {
+                add(list)
+                rest = rest.drop(list.size + 1)
+                list = rest.takeWhile { it.isNotBlank() }
+            }
         }
-        return result
     }
 
-    fun rotateList(array: Array<CharArray>) = buildList<List<Char>> {
-        for (i in array[0].indices) {
-            val row = mutableListOf<Char>()
-            for (j in array.indices) {
-                row.add(array[j][i])
+    fun rotateList(list: List<String>): List<String> {
+        val array = list.map { it.toCharArray() }.toTypedArray()
+        return buildList<List<Char>> {
+            for (i in array[0].indices) {
+                val row = mutableListOf<Char>()
+                for (j in array.indices) {
+                    row.add(array[j][i])
+                }
+                add(row)
             }
-            add(row)
-        }
-    }.map { it.joinToString("") }.toList()
+        }.map { it.joinToString("") }.toList()
+    }
 
     fun differenceEqualsOneElement(first: String, second: String): Boolean {
         if (first.length != second.length) return false
@@ -33,21 +36,20 @@ fun main() {
     }
 
     fun checkIfMirror(input: List<String>, allowedError: Boolean = false): Boolean {
-        var hasError = !allowedError
+        var wasSmudge = !allowedError
         for (i in input.indices) {
             val j = input.size - 1 - i
             if (input[i] != input[j]) {
                 if (!allowedError) return false
 
-                val differenceEqualsOneElement = differenceEqualsOneElement(input[i], input[j])
-                if (differenceEqualsOneElement.not())
+                if (differenceEqualsOneElement(input[i], input[j]).not())
                     return false
                 else {
-                    if (hasError) return false
-                    hasError = true
+                    if (wasSmudge) return false
+                    wasSmudge = true
                 }
             }
-            if (i == j - 1 && hasError) return true
+            if (i == j - 1 && wasSmudge) return true
         }
         return false
     }
@@ -73,7 +75,7 @@ fun main() {
 
         return inputData.sumOf {
             val horizontal = findMirrorLine(it)
-            val vertical = findMirrorLine(rotateList(it.map { it.toCharArray() }.toTypedArray()))
+            val vertical = findMirrorLine(rotateList(it))
             val result = vertical?.third ?: horizontal?.third?.times(100) ?: 0
             result
         }
@@ -84,7 +86,7 @@ fun main() {
 
         return inputData.sumOf {
             val horizontal = findMirrorLine(it, true)
-            val vertical = findMirrorLine(rotateList(it.map { it.toCharArray() }.toTypedArray()), true)
+            val vertical = findMirrorLine(rotateList(it), true)
             val result = horizontal?.third?.times(100) ?: vertical?.third ?: 0
             result
         }
