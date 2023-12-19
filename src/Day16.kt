@@ -1,7 +1,3 @@
-enum class Direction {
-    UP, DOWN, LEFT, RIGHT
-}
-
 fun main() {
 
     data class Visited(val from: MutableSet<Direction>)
