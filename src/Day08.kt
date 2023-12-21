@@ -33,10 +33,6 @@ fun main() {
         return steps
     }
 
-    fun gcd(a: Long, b: Long): Long = if (a == 0L) b else gcd(b % a, a)
-
-    fun lcm(a: Long, b: Long): Long = (a / gcd(a, b)) * b
-
     fun part2(input: List<String>): Long {
         val parsedInput = parseInput(input)
 

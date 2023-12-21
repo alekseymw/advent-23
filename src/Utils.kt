@@ -23,3 +23,7 @@ fun Any?.println() = println(this)
 enum class Direction(val dx: Int, val dy: Int) {
     UP(0, -1), DOWN(0, 1), LEFT(-1, 0), RIGHT(1, 0)
 }
+
+fun gcd(a: Long, b: Long): Long = if (a == 0L) b else gcd(b % a, a)
+
+fun lcm(a: Long, b: Long): Long = (a / gcd(a, b)) * b
